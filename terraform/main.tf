@@ -1,13 +1,23 @@
-# This resource will destroy (potentially immediately) after null_resource.next
-resource "null_resource" "previous" {}
+# This will wait 10s after the "next" resource
+resource "time_sleep" "wait_10_seconds" {
+  depends_on = [null_resource.next]
 
-resource "time_sleep" "wait_5_seconds" {
-  depends_on = [null_resource.previous]
-
-  create_duration = "5s"
+  create_duration = "10s"
 }
 
-# This resource will create (at least) 30 seconds after null_resource.previous
-resource "null_resource" "next" {
-  depends_on = [time_sleep.wait_5_seconds]
+resource "null_resource" "final" {
+  depends_on = [time_sleep.wait_10_seconds]
+}
+
+# An alternate branch that starts from scratch
+resource "null_resource" "parallel_start" {}
+
+resource "time_sleep" "wait_3_seconds_parallel" {
+  depends_on = [null_resource.parallel_start]
+
+  create_duration = "3s"
+}
+
+resource "null_resource" "parallel_end" {
+  depends_on = [time_sleep.wait_3_seconds_parallel]
 }
